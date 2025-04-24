@@ -1,3 +1,4 @@
+// home.tsx
 import { useTheme } from './theme-context';
 import { MapPin } from "lucide-react";
 import {
@@ -7,12 +8,18 @@ import {
   StyleSheet,
   ImageBackground,
   ScrollView,
+  TextInput,
+  // Button, // Button import might not be needed if using TouchableOpacity
+  Alert, // Import Alert for basic validation feedback
 } from "react-native";
 import { Feather } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router } from 'expo-router'; // Make sure router is imported
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import React, { useState } from 'react';
 
+// ... (destinations array remains the same)
 const destinations = [
+  // ... your destinations data
   {
     city: "Center ville",
     price: "10 DA",
@@ -35,80 +42,155 @@ const destinations = [
   }
 ];
 
+
 const Index = () => {
   const { isDarkMode } = useTheme();
+  const [fromLocation, setFromLocation] = useState('');
+  const [toLocation, setToLocation] = useState('');
+  const [searchDate, setSearchDate] = useState('');
+
+  const handleSearch = () => {
+    // Basic validation (optional but recommended)
+    if (!fromLocation || !toLocation || !searchDate) {
+      Alert.alert("Champs manquants", "Veuillez remplir tous les champs de recherche.");
+      return;
+    }
+
+    console.log("Navigating to results with:", { from: fromLocation, to: toLocation, date: searchDate });
+
+    // Navigate to the search results screen, passing parameters
+    router.push({
+      pathname: "/search-results", // The route name for your results screen
+      params: {
+        from: fromLocation,
+        to: toLocation,
+        date: searchDate,
+      },
+    });
+  };
 
   return (
-    <View style={[styles.container, isDarkMode && styles.containerDark]}>
+    <ScrollView
+      style={[styles.container, isDarkMode && styles.containerDark]}
+      contentContainerStyle={styles.scrollContentContainer}
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* --- Header --- */}
       <View style={styles.headerRow}>
         <Text style={[styles.header, isDarkMode && styles.darkText]}>
           <Feather name="home" size={22} /> Home
         </Text>
         <TouchableOpacity
-          onPress={() => console.log("scan")} 
+          onPress={() => console.log("scan")}
           style={styles.scan}
         >
           <MaterialIcons name="qr-code-scanner" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
-     
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.grid}>
-          {destinations.map((destination) => (
-            <TouchableOpacity
-              key={destination.city}
-              style={styles.touchable}
-              onPress={() => console.log("Navigating to preview")}
-            >
-              <View style={[styles.card, isDarkMode && styles.cardDark]}>
-                <ImageBackground
-                  source={{ uri: destination.image }}
-                  style={styles.image}
-                />
-                <View style={styles.cardContent}>
-                  <View style={styles.cardHeader}>
-                    <MapPin size={20} color={isDarkMode ? '#d1d5db' : '#4b5563'} />
-                    <Text style={[styles.cityText, isDarkMode && styles.cityTextDark]}>
-                      Gare outiare ⇆ {destination.city}
-                    </Text>
-                  </View>
-                  <View style={styles.cardDetails}>
-                    <Text style={isDarkMode ? styles.textDark : styles.textLight}>
-                      Prix à partir de: <Text style={[styles.highlight, isDarkMode && styles.highlightDark]}>{destination.price}</Text>
-                    </Text>
-                  </View>
+      {/* --- Search Form --- */}
+      <View style={[styles.searchForm, isDarkMode && styles.searchFormDark]}>
+        <Text style={[styles.formLabel, isDarkMode && styles.textDark]}>De</Text>
+        <TextInput
+          style={[styles.input, isDarkMode && styles.inputDark]}
+          placeholder="Lieu de départ"
+          placeholderTextColor={isDarkMode ? '#9ca3af' : '#6b7280'}
+          value={fromLocation}
+          onChangeText={setFromLocation}
+        />
+
+        <Text style={[styles.formLabel, isDarkMode && styles.textDark]}>À</Text>
+        <TextInput
+          style={[styles.input, isDarkMode && styles.inputDark]}
+          placeholder="Destination"
+          placeholderTextColor={isDarkMode ? '#9ca3af' : '#6b7280'}
+          value={toLocation}
+          onChangeText={setToLocation}
+        />
+
+        <Text style={[styles.formLabel, isDarkMode && styles.textDark]}>Date</Text>
+        <TextInput
+          style={[styles.input, isDarkMode && styles.inputDark]}
+          placeholder="JJ/MM/AAAA" // Simplified placeholder
+          placeholderTextColor={isDarkMode ? '#9ca3af' : '#6b7280'}
+          value={searchDate}
+          onChangeText={setSearchDate}
+          // Consider using a DatePicker component here for better UX
+        />
+
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <Text style={styles.searchButtonText}>Rechercher</Text>
+        </TouchableOpacity>
+      </View>
+      {/* --- End Search Form --- */}
+
+
+      {/* --- Recommended Destinations --- */}
+      <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Destinations Recommandées</Text>
+      <View style={styles.grid}>
+        {destinations.map((destination) => (
+          <TouchableOpacity
+            key={destination.city}
+            style={styles.touchable}
+            onPress={() => console.log("Navigating to preview for", destination.city)} // Example action
+          >
+            <View style={[styles.card, isDarkMode && styles.cardDark]}>
+              <ImageBackground
+                source={{ uri: destination.image }}
+                style={styles.image}
+              />
+              <View style={styles.cardContent}>
+                <View style={styles.cardHeader}>
+                  <MapPin size={20} color={isDarkMode ? '#d1d5db' : '#4b5563'} />
+                  <Text style={[styles.cityText, isDarkMode && styles.cityTextDark]}>
+                    Gare routière ⇆ {destination.city} {/* Corrected typo */}
+                  </Text>
+                </View>
+                <View style={styles.cardDetails}>
+                  <Text style={isDarkMode ? styles.textDark : styles.textLight}>
+                    Prix à partir de: <Text style={[styles.highlight, isDarkMode && styles.highlightDark]}>{destination.price}</Text>
+                  </Text>
                 </View>
               </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-    </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {/* --- End Recommended Destinations --- */}
+
+    </ScrollView>
   );
 };
 
+// --- Styles ---
+// Keep your existing styles, but add/modify these:
 const styles = StyleSheet.create({
+  // ... (Keep all your existing styles: container, containerDark, scrollContentContainer, headerRow, header, darkText, scan, searchForm, searchFormDark, formLabel, input, inputDark, searchButton, searchButtonText, grid, touchable, card, cardDark, image, cardContent, cardHeader, cityText, cityTextDark, cardDetails, highlight, highlightDark, textLight, textDark)
   container: {
     flex: 1,
     backgroundColor: '#f9f9ff',
-    paddingBottom: 0,
-    paddingHorizontal: 16,
-    paddingTop: 40,
   },
   containerDark: {
     backgroundColor: '#111827',
+  },
+  scrollContentContainer: {
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingTop: 40, // Adjust as needed, consider safe area
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   header: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#111827',
+    // Add icon alignment if needed
+    display: 'flex',
+    alignItems: 'center',
   },
   darkText: {
     color: '#fff',
@@ -122,35 +204,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
   },
-  subheading: {
+  searchForm: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  searchFormDark: {
+    backgroundColor: '#1f2937',
+    borderColor: '#374151',
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 4,
+    marginTop: 8,
+  },
+  input: {
+    height: 45,
+    borderColor: '#d1d5db',
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+    color: '#111827',
+    fontSize: 16,
+  },
+  inputDark: {
+    borderColor: '#4b5563',
+    backgroundColor: '#374151',
+    color: '#f9fafb',
+  },
+  searchButton: {
+      backgroundColor: '#2563eb',
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 6,
+      alignItems: 'center',
+      marginTop: 10,
+  },
+  searchButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+  },
+  sectionTitle: { // Added style for the "Recommended Destinations" title
     fontSize: 18,
-    textAlign: 'center',
+    fontWeight: '600',
     marginBottom: 16,
-    fontWeight: 'bold',
-
-    color: '#6b7280',
-  },
-  subheadingDark: {
-    color: '#9ca3af',
-  },
-  content: {
-    padding: 20,
+    color: '#111827',
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
+    gap: 16,
   },
   touchable: {
     width: '100%',
-    marginBottom: 16,
   },
   card: {
     borderWidth: 1,
     borderColor: '#c7d2fe',
     borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: '#fff',
   },
   cardDark: {
     borderColor: '#374151',
@@ -173,12 +297,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#1f2937',
+    flexShrink: 1, // Allow text to shrink if needed
   },
   cityTextDark: {
     color: '#f9fafb',
   },
   cardDetails: {
     gap: 4,
+    flexDirection: 'row', // Align price and date horizontally
+    justifyContent: 'space-between', // Space them out
+    alignItems: 'center',
   },
   highlight: {
     color: '#3b82f6',
@@ -192,6 +320,13 @@ const styles = StyleSheet.create({
   },
   textDark: {
     color: '#d1d5db',
+  },
+  dateText: { // Style for the date in the card
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  dateTextDark: {
+    color: '#9ca3af',
   },
 });
 
